@@ -31,7 +31,25 @@ describe("buildInitiatePaymentData", () => {
       config
     );
 
-    expect(result).toEqual({ error: "Amount must be a valid number" });
+    expect(result).toEqual({ error: "Amount must be a valid positive number" });
+  });
+
+  it("rejects a negative amount", () => {
+    const result = buildInitiatePaymentData(
+      { amount: "-9999.99", item_name: "Plan", m_payment_id: "PAY-1" },
+      config
+    );
+
+    expect(result).toEqual({ error: "Amount must be a valid positive number" });
+  });
+
+  it("rejects a zero amount", () => {
+    const result = buildInitiatePaymentData(
+      { amount: "0", item_name: "Plan", m_payment_id: "PAY-1" },
+      config
+    );
+
+    expect(result).toEqual({ error: "Amount must be a valid positive number" });
   });
 
   it("builds a signed payment payload for a valid request", () => {

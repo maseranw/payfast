@@ -33,6 +33,7 @@ export class PayFastService implements PayFastServiceInterface {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(await this.buildAuthHeaders()),
       },
       body: JSON.stringify(data),
     });

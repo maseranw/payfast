@@ -124,7 +124,7 @@ setAuthTokenProvider(async () => {
 });
 ```
 
-The provider can be sync or async, and returning `null` simply omits the header. `initiatePayment` never sends this header, since it isn't tied to an existing subscription's ownership.
+The provider can be sync or async, and returning `null` simply omits the header. Every method sends it when a provider is configured, including `initiatePayment` — if your backend creates the payment record before calling `/initiate` (e.g. inserting a `pending` subscription row the caller owns via RLS, then passing its id as `m_payment_id`), your backend can use this header to verify the caller actually owns that record before signing a payment for it.
 
 ## Security
 

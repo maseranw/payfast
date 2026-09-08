@@ -38,8 +38,9 @@ const buildInitiatePaymentData = (
     return { error: "Missing required fields" };
   }
 
-  if (isNaN(parseFloat(amount))) {
-    return { error: "Amount must be a valid number" };
+  const parsedAmountValue = parseFloat(amount);
+  if (isNaN(parsedAmountValue) || parsedAmountValue <= 0) {
+    return { error: "Amount must be a valid positive number" };
   }
 
   const effectiveBillingDate =

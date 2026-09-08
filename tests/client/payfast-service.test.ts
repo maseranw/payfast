@@ -42,6 +42,24 @@ describe("PayFastService", () => {
     expect(result).toEqual(responseBody);
   });
 
+  it("initiatePayment attaches an Authorization header when an auth token provider is set", async () => {
+    (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({}),
+    });
+    setAuthTokenProvider(() => "session-token-abc");
+
+    const service = new PayFastService();
+    await service.initiatePayment({
+      amount: "100",
+      item_name: "Subscription",
+      m_payment_id: "abc123",
+    });
+
+    const [, options] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(options.headers.Authorization).toBe("Bearer session-token-abc");
+  });
+
   it("throws PayFast API error with status and statusText when error body is not JSON", async () => {
     (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: false,

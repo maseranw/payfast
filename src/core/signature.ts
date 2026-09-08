@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash, timingSafeEqual } from "crypto";
 import { PaymentData, PfData } from "../types";
 
 const generateSignatureForInitiate = (
@@ -66,7 +66,11 @@ const pfValidSignature = (
   }
 
   const signature = createHash("md5").update(pfParamString).digest("hex");
-  return pfData["signature"] === signature;
+  const provided = pfData["signature"] || "";
+  if (provided.length !== signature.length) {
+    return false;
+  }
+  return timingSafeEqual(Buffer.from(provided), Buffer.from(signature));
 };
 
 const generateApiSignature = (

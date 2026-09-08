@@ -1,6 +1,6 @@
 {
   "name": "@ngelekanyo/payfast",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "description": "Unified PayFast subscription toolkit: core signing/ITN utilities, an Express router, and a browser client",
   "author": "Ngelekanyo Masera <ngelekanyo@gmail.com>",

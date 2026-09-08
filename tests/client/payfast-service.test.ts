@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PayFastService } from "../../src/client/payfast-service";
-import { initPayFastClient } from "../../src/client/payfast-config";
+import { initPayFastClient, setAuthTokenProvider } from "../../src/client/payfast-config";
 import type { PaymentData } from "../../src/types";
 
 describe("PayFastService", () => {
   beforeEach(() => {
     initPayFastClient("https://api.example.com");
+    setAuthTokenProvider(null);
     vi.stubGlobal("fetch", vi.fn());
   });
 
@@ -171,7 +172,48 @@ describe("PayFastService", () => {
       `https://api.example.com/api/payfast/fetch/${encodeURIComponent(
         token
       )}`,
-      { method: "GET" }
+      { method: "GET", headers: {} }
     );
+  });
+
+  it("attaches no Authorization header when no auth token provider is set", async () => {
+    (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({}),
+    });
+
+    const service = new PayFastService();
+    await service.pauseSubscription("token-123");
+
+    const [, options] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(options.headers.Authorization).toBeUndefined();
+  });
+
+  it("attaches an Authorization header from the configured auth token provider", async () => {
+    (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({}),
+    });
+    setAuthTokenProvider(() => "session-token-abc");
+
+    const service = new PayFastService();
+    await service.pauseSubscription("token-123");
+
+    const [, options] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(options.headers.Authorization).toBe("Bearer session-token-abc");
+  });
+
+  it("supports an async auth token provider", async () => {
+    (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({}),
+    });
+    setAuthTokenProvider(async () => "async-token");
+
+    const service = new PayFastService();
+    await service.fetchSubscription("token-123");
+
+    const [, options] = (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(options.headers.Authorization).toBe("Bearer async-token");
   });
 });

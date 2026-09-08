@@ -19,4 +19,26 @@ describe("payfast-config", () => {
     initPayFastClient("https://api.example.com");
     expect(getBaseUrl()).toBe("https://api.example.com");
   });
+
+  it("returns null from getAuthToken when no provider is set", async () => {
+    const { getAuthToken } = await import("../../src/client/payfast-config");
+    expect(await getAuthToken()).toBeNull();
+  });
+
+  it("returns the provider's token from getAuthToken once one is set", async () => {
+    const { getAuthToken, setAuthTokenProvider } = await import(
+      "../../src/client/payfast-config"
+    );
+    setAuthTokenProvider(() => "abc123");
+    expect(await getAuthToken()).toBe("abc123");
+  });
+
+  it("returns null again after the provider is cleared", async () => {
+    const { getAuthToken, setAuthTokenProvider } = await import(
+      "../../src/client/payfast-config"
+    );
+    setAuthTokenProvider(() => "abc123");
+    setAuthTokenProvider(null);
+    expect(await getAuthToken()).toBeNull();
+  });
 });

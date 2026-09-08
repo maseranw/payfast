@@ -1,4 +1,4 @@
-import { getBaseUrl } from "./payfast-config";
+import { getAuthToken, getBaseUrl } from "./payfast-config";
 import { PayFastFormUtils } from "./payfast-form-utils";
 import {
   PayFastActionResponse,
@@ -21,6 +21,11 @@ export class PayFastService implements PayFastServiceInterface {
       throw new Error(error.error || `Failed to ${response.url}`);
     }
     return response.json();
+  }
+
+  private async buildAuthHeaders(): Promise<Record<string, string>> {
+    const token = await getAuthToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
   async initiatePayment(data: PaymentData): Promise<PayFastResponse> {
@@ -46,6 +51,7 @@ export class PayFastService implements PayFastServiceInterface {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(await this.buildAuthHeaders()),
         },
       }
     );
@@ -59,6 +65,7 @@ export class PayFastService implements PayFastServiceInterface {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(await this.buildAuthHeaders()),
         },
       }
     );
@@ -72,6 +79,7 @@ export class PayFastService implements PayFastServiceInterface {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(await this.buildAuthHeaders()),
         },
       }
     );
@@ -85,6 +93,7 @@ export class PayFastService implements PayFastServiceInterface {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(await this.buildAuthHeaders()),
         },
       }
     );
@@ -96,6 +105,7 @@ export class PayFastService implements PayFastServiceInterface {
       `${getBaseUrl()}/api/payfast/fetch/${encodeURIComponent(token)}`,
       {
         method: "GET",
+        headers: await this.buildAuthHeaders(),
       }
     );
     return await this.handleResponse(response);

@@ -111,11 +111,27 @@ await payfast.cancelSubscriptionById(token, subscriptionId);
 await payfast.fetchSubscription(token);
 ```
 
+### Authenticating subscription actions
+
+If your backend verifies that the caller actually owns the subscription being paused, resumed, cancelled, or fetched, wire up an auth token provider so those requests carry an `Authorization: Bearer <token>` header:
+
+```ts
+import { setAuthTokenProvider } from "@ngelekanyo/payfast/client";
+
+setAuthTokenProvider(async () => {
+  const session = await getCurrentSession();
+  return session?.accessToken ?? null;
+});
+```
+
+The provider can be sync or async, and returning `null` simply omits the header. `initiatePayment` never sends this header, since it isn't tied to an existing subscription's ownership.
+
 ## Security
 
 - Validates PayFast's signature on every ITN
 - Verifies source IP matches PayFast domains (skipped in sandbox mode)
 - Uses CSRF/session token for authenticated subscription actions, with retry on expired CSRF/session (HTTP 419)
+- `/server`'s router itself does not verify that the caller owns a given subscription token — it trusts whatever your callbacks and your own middleware decide. If that matters for your app, use `/client`'s `setAuthTokenProvider` to attach a session token to subscription-action requests, and check ownership against it in middleware on your backend before those requests reach this router.
 
 ## Pause/unpause disclaimer
 

@@ -67,15 +67,89 @@ describe("buildInitiatePaymentData", () => {
     }
   });
 
-  it("defaults billing_date to today when not provided", () => {
+  it("omits subscription fields for a once-off payment", () => {
     const result = buildInitiatePaymentData(
-      { amount: "10.00", item_name: "Plan", m_payment_id: "PAY-1" },
+      { amount: "10.00", item_name: "Song", m_payment_id: "PAY-1" },
+      config
+    );
+
+    if (!("error" in result)) {
+      expect(result.paymentData.subscription_type).toBeUndefined();
+      expect(result.paymentData.recurring_amount).toBeUndefined();
+      expect(result.paymentData.billing_date).toBeUndefined();
+    }
+  });
+
+  it("passes through custom_str1-5 for a once-off payment", () => {
+    const result = buildInitiatePaymentData(
+      {
+        amount: "10.00",
+        item_name: "Song",
+        m_payment_id: "PAY-1",
+        custom_str1: "song-slug",
+        custom_str2: "42",
+      },
+      config
+    );
+
+    if (!("error" in result)) {
+      expect(result.paymentData.custom_str1).toBe("song-slug");
+      expect(result.paymentData.custom_str2).toBe("42");
+    }
+  });
+
+  it("opts into subscription fields with defaults when subscription_type is set", () => {
+    const result = buildInitiatePaymentData(
+      {
+        amount: "10.00",
+        item_name: "Plan",
+        m_payment_id: "PAY-1",
+        subscription_type: 1,
+      },
       config
     );
 
     const today = new Date().toISOString().split("T")[0];
     if (!("error" in result)) {
+      expect(result.paymentData.subscription_type).toBe(1);
       expect(result.paymentData.billing_date).toBe(today);
+      expect(result.paymentData.recurring_amount).toBe("10.00");
+      expect(result.paymentData.frequency).toBe(3);
+      expect(result.paymentData.cycles).toBe(0);
+    }
+  });
+
+  it("allows return_url and cancel_url to be overridden per call", () => {
+    const result = buildInitiatePaymentData(
+      {
+        amount: "10.00",
+        item_name: "Song",
+        m_payment_id: "PAY-1",
+        return_url: "https://example.com/return/song-slug",
+        cancel_url: "https://example.com/cancel/song-slug",
+      },
+      config
+    );
+
+    if (!("error" in result)) {
+      expect(result.paymentData.return_url).toBe(
+        "https://example.com/return/song-slug"
+      );
+      expect(result.paymentData.cancel_url).toBe(
+        "https://example.com/cancel/song-slug"
+      );
+    }
+  });
+
+  it("defaults return_url and cancel_url to config when not overridden", () => {
+    const result = buildInitiatePaymentData(
+      { amount: "10.00", item_name: "Song", m_payment_id: "PAY-1" },
+      config
+    );
+
+    if (!("error" in result)) {
+      expect(result.paymentData.return_url).toBe(config.return_url);
+      expect(result.paymentData.cancel_url).toBe(config.cancel_url);
     }
   });
 });

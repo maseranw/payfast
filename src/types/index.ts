@@ -41,6 +41,13 @@ export interface InitiateRequestBody {
   name_last?: string;
   email_address?: string;
   m_payment_id?: string;
+  return_url?: string;
+  cancel_url?: string;
+  custom_str1?: string;
+  custom_str2?: string;
+  custom_str3?: string;
+  custom_str4?: string;
+  custom_str5?: string;
   subscription_type?: number;
   billing_date?: string;
   recurring_amount?: string;

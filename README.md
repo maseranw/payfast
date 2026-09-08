@@ -82,6 +82,13 @@ app.listen(6000);
 | POST   | `/api/payfast/cancel/:token`                  | Cancel an active PayFast subscription          |
 | POST   | `/api/payfast/pause/:token`                   | Pause an active subscription                   |
 | POST   | `/api/payfast/unpause/:token`                 | Unpause a paused subscription                  |
+
+`/initiate` builds a once-off payment by default. Include `subscription_type`
+in the request body to opt into a recurring subscription instead — this adds
+`billing_date`/`recurring_amount`/`frequency`/`cycles` with sensible
+defaults. `return_url`/`cancel_url` can be overridden per request (falling
+back to the configured defaults), and `custom_str1`-`custom_str5` are passed
+through to PayFast and returned unchanged in the ITN payload.
 | GET    | `/api/payfast/fetch/:token`                   | Fetch subscription details                     |
 
 `express` and `cors` are optional peer dependencies — install them yourself when using `/server`; `/client` consumers don't need them.

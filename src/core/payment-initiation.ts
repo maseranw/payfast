@@ -24,6 +24,13 @@ const buildInitiatePaymentData = (
     name_last,
     email_address,
     m_payment_id,
+    return_url,
+    cancel_url,
+    custom_str1,
+    custom_str2,
+    custom_str3,
+    custom_str4,
+    custom_str5,
     subscription_type,
     billing_date,
     recurring_amount,
@@ -43,16 +50,13 @@ const buildInitiatePaymentData = (
     return { error: "Amount must be a valid positive number" };
   }
 
-  const effectiveBillingDate =
-    billing_date || new Date().toISOString().split("T")[0];
   const parsedAmount = parseFloat(amount).toFixed(2);
-  const effectiveRecurringAmount = recurring_amount || parsedAmount;
 
   const paymentData: PaymentData = {
     merchant_id: config.merchant_id || "",
     merchant_key: config.merchant_key || "",
-    return_url: config.return_url,
-    cancel_url: config.cancel_url,
+    return_url: return_url || config.return_url,
+    cancel_url: cancel_url || config.cancel_url,
     notify_url: config.notify_url,
     name_first: name_first || "",
     name_last: name_last || "",
@@ -61,15 +65,28 @@ const buildInitiatePaymentData = (
     amount: parsedAmount,
     item_name,
     item_description,
-    subscription_type: subscription_type || 1,
-    billing_date: effectiveBillingDate,
-    recurring_amount: effectiveRecurringAmount,
-    frequency: frequency || 3,
-    cycles: cycles || 0,
-    subscription_notify_email: subscription_notify_email ?? true,
-    subscription_notify_webhook: subscription_notify_webhook ?? true,
-    subscription_notify_buyer: subscription_notify_buyer ?? true,
   };
+
+  if (custom_str1 !== undefined) paymentData.custom_str1 = custom_str1;
+  if (custom_str2 !== undefined) paymentData.custom_str2 = custom_str2;
+  if (custom_str3 !== undefined) paymentData.custom_str3 = custom_str3;
+  if (custom_str4 !== undefined) paymentData.custom_str4 = custom_str4;
+  if (custom_str5 !== undefined) paymentData.custom_str5 = custom_str5;
+
+  if (subscription_type !== undefined) {
+    const effectiveBillingDate =
+      billing_date || new Date().toISOString().split("T")[0];
+    const effectiveRecurringAmount = recurring_amount || parsedAmount;
+
+    paymentData.subscription_type = subscription_type;
+    paymentData.billing_date = effectiveBillingDate;
+    paymentData.recurring_amount = effectiveRecurringAmount;
+    paymentData.frequency = frequency || 3;
+    paymentData.cycles = cycles || 0;
+    paymentData.subscription_notify_email = subscription_notify_email ?? true;
+    paymentData.subscription_notify_webhook = subscription_notify_webhook ?? true;
+    paymentData.subscription_notify_buyer = subscription_notify_buyer ?? true;
+  }
 
   paymentData.signature = generateSignatureForInitiate(
     paymentData,
